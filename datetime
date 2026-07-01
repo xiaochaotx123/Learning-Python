@@ -1,0 +1,37 @@
+# 导入Python标准库datetime，该模块提供了日期、时间的处理与计算能力
+import datetime
+
+# datetime.datetime.now()：调用datetime模块下datetiem类的now()方法，获取当前本地的完整时间（包括年、月、日、时、分、秒、微秒），并直接打印
+# 输出格式示例：2026-07-01 21:22:21.902121
+# 可以看见后面是精确到了微秒的
+print(datetime.datetime.now())
+
+# 通过strftime()方法按照指定格式将时间对象转为字符串
+# %Y：4位年份
+# %m：2位月份
+# %d：2位日期
+# %H：24小时制的小时
+# %M：2位分钟
+# %S：2位秒
+current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+print(current_time)
+# 我仅输出年份
+print(datetime.datetime.now().strftime("%Y"))
+
+
+# 获取今天的日期
+today = datetime.date.today()\
+# 计算今天星期几
+# 如果使用weekday()方法：0表示星期一，1表示星期二，2表示星期三，3表示星期四，4表示星期五，5表示星期六，6表示星期日
+print(today.weekday())
+# 如果使用isoweekday()方法：1表示星期一，2表示星期二，3表示星期三，4表示星期四，5表示星期五，6表示星期六，7表示星期日
+print(today.isoweekday())
+
+
+# datetime.timedelta()：用于表示一段时间长度，是实现日期的加减、差值计算、是日期运算的核心
+now_time = datetime.datetime.now() # 现在的时间
+delta = datetime.timedelta(weeks = 1, days = 2, hours = 3) # 表示一周两天三小时的时间长度
+print(now_time + delta) # 输出未来一周两天三小时后的时间
+
+delta1 = datetime.timedelta(minutes = 30)
+print(now_time - delta1) # 输出30分钟前的时间
