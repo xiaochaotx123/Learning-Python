@@ -1,0 +1,17 @@
+# Speeds from real household chats
+
+There is no extra model download, synthetic prompt or long benchmark. A
+completed household Segment turn supplies prefill and decode timing. Once it
+has at least two generated tokens and complete execution identities, Lumabri
+saves the latest observation in `~/.lumabri/calibrations/` on the requesting
+computer. Reopening the catalogue and selecting the same donors can show
+`12.50 tok/s (last)`. This example is illustrative, not a performance claim.
+
+The detail view includes the observed prompt and output token counts. This is
+historical evidence for that plan, not a guarantee for a different prompt,
+longer conversation, changing network conditions or other machine load. The
+configured context limit is part of the key; the actual prompt length is
+recorded separately. One-token replies, legacy timing frames and incomplete
+numeric/runtime metadata cannot create a speed record.
+
+## When a number disappears
