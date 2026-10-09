@@ -69,8 +69,60 @@ data = {
 }
 ```
 
+```python
+import pandas as pd
+```
+```python
+behavior_data = pd.DataFrame(data)
+print(behavior_data)
+# 输出：
+#    用户ID      用户名  商品类别  商品单价  购买数量
+# 0   101    Alice  电子产品  1200     1
+# 1   102      Bob    服饰   300     3
+# 2   103  Charlie  电子产品   800     2
+# 3   104    David    家具   150     5
+# 4   105      Eve    服饰   200     4
+```
 
+#### 计算每位用户的总消费金额（消费金额 = 商品单价 × 购买数量）
+```python
+behavior_data["总消费金额"] = behavior_data["商品单价"] * behavior_data["购买数量"]
+print(behavior_data)
+# 输出：
+#    用户ID      用户名  商品类别  商品单价  购买数量  总消费金额
+# 0   101    Alice  电子产品  1200     1   1200
+# 1   102      Bob    服饰   300     3    900
+# 2   103  Charlie  电子产品   800     2   1600
+# 3   104    David    家具   150     5    750
+# 4   105      Eve    服饰   200     4    800
+```
 
+#### 找出消费金额最高的用户，并输出其全部信息
+```python
+print(behavior_data.nlargest(1, ["总消费金额"]))
+# 输出：
+#    用户ID      用户名  商品类别  商品单价  购买数量  总消费金额
+# 2   103  Charlie  电子产品   800     2   1600
+```
 
+#### 计算所有用户的平均消费金额（保留2位小数）
+```python
+average_money = round(behavior_data["总消费金额"].mean(), 2)
+print(average_money)
+# round(behavior_data["总消费金额"].sum(axis = 0) / len(behavior_data), 2) 也是可以的
+```
+
+#### 统计电子产品的总购买数量
+```python
+# 1. 首先筛选出来商品类别是电子产品的
+# print(behavior_data[behavior_data["商品类别"] == "电子产品"])
+# 输出：
+#    用户ID      用户名  商品类别  商品单价  购买数量  总消费金额
+# 0   101    Alice  电子产品  1200     1   1200
+# 2   103  Charlie  电子产品   800     2   1600
+
+# 2. 然后就可以直接计算了
+print(behavior_data[behavior_data["商品类别"] == "电子产品"]["购买数量"].sum(axis = 0))
+```
 
 
