@@ -69,8 +69,6 @@ df.pivot(
 |columns|其唯一值展开为新表的列名|"科目" —— Math/English/Science三个值变成三列|
 |values|填入新表单元格的数值来源|"分数" —— 90,88,95...填入对应位置|
 
-
-
 ```python
 df2 = pd.pivot(df1, index = ["ID", "name"], columns = "科目", values = "分数")
 print(df2)
@@ -80,5 +78,41 @@ print(df2)
 # 2  bob         92    85       89
 ```
 
+#### 分列操作
+在sleep.csv中存在一列值blood_pressure，比如124/70表示的这个人的最高血压是124，最低血压是70  
+我们可以使用分列操作将这个blood_pressure分成2列：high_blood_pressure和low_blood_pressure  
+```python
+sleep_df[["high_blood_pressure", "low_blood_pressure"]] = sleep_df["blood_pressure"].str.split("/", expand = True)
+```
 
+|部分|说明|
+|----|----|
+|sleep_df["blood_pressure"].str|.str访问器，用于对Series中的每一个字符串元素调用字符串方法|
+|.split("/", expand=True)|按照 / 分割每个字符串，expand = True将结果展开为一个DataFrame（多列），而非返回包含列表的Series|
+|sleep_df[["high_blood_pressure", "low_blood_pressure"]]|左侧使用双括号[[...]]同时指定两个新列目标|
+
+```python
+sleep_df = pd.read_csv("Pandas_Study_Data/sleep.csv")
+print(sleep_df["blood_pressure"])
+
+sleep_df[["high_blood_pressure", "low_blood_pressure"]] = sleep_df["blood_pressure"].str.split("/", expand = True)
+
+print(sleep_df.dtypes)
+# ...
+# high_blood_pressure            str
+# low_blood_pressure             str
+# dtype: object
+
+sleep_df["high_blood_pressure"] = sleep_df["high_blood_pressure"].astype("int64")
+sleep_df["low_blood_pressure"] = sleep_df["low_blood_pressure"].astype("int64")
+
+print(sleep_df.dtypes)
+# ...
+# high_blood_pressure          int64
+# low_blood_pressure           int64
+# dtype: object
+
+print(sleep_df["high_blood_pressure"].mean()) # 124.55
+```
+分列操作后的high_blood_pressure和low_blood_pressure的数据类型都是str类型，不能进行求最大值、平均数等计算，所以得使用astype()进行数据类型转换
 
