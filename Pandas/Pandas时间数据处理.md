@@ -133,3 +133,34 @@ print(df["datetime"].dt.year)
 # 2    2025
 # Name: datetime, dtype: int32
 ```
+
+#### csv文件中日期转换
+正常这么读入文件：
+```python
+df = pd.read_csv("Pandas_Study_Data/weather.csv")
+```
+但是如果需要处理这个文件的日期信息等，因为一开始的date是字符串类型，所以需要加上：
+```python
+df["datetime"] = pd.to_datetime(df["date"])
+```
+或者直接覆盖：
+```python
+df["date"] = pd.to_datetime(df["date"])
+```
+将date的字符串类型转换为datetime64[us]类型
+
+但是可以直接在读入文件的时候使用参数将字符串类型的日期信息直接修改为datetime64[us]类型
+#### parse_dates
+parse_dates是pd.read_csv()的一个参数，用于在读取CSV时直接将某些列解析为日期时间类型，省去了读完之后再pd.to_datetime()的步骤
+
+```python
+df = pd.read_csv("Pandas_Study_Data/weather.csv", parse_dates = ["date"])
+```
+
+- 在90%的场景下，只要CSV里的日期格式是标准的（比如 2026-10-12 或 2026/10/12）无脑用parse_dates，它是最优雅、最高效的
+- 当你的日期数据非常脏（比如有的写2026-10-12，有的写2026年10月12日，有的甚至写未知），此时parse_dates会直接把无法解析的变成NaT甚至报错。这时候，就需要来手动清洗和容错（比如df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d", errors="coerce")）
+
+```python
+df = pd.read_csv("Pandas_Study_Data/weather.csv", parse_dates = ["date"])
+df["week"] = df["date"].dt.day_name()
+```
