@@ -164,3 +164,116 @@ df = pd.read_csv("Pandas_Study_Data/weather.csv", parse_dates = ["date"])
 df = pd.read_csv("Pandas_Study_Data/weather.csv", parse_dates = ["date"])
 df["week"] = df["date"].dt.day_name()
 ```
+
+#### 将日期作为行索引获取单个元素或者切片获取元素
+```python
+df = pd.read_csv("Pandas_Study_Data/weather.csv", parse_dates = ["date"])
+
+# 这个inplace = True参数使得直接修改，不需要再df = df.set_index("date")
+df.set_index("date", inplace = True)
+
+# 直接显式索引获取数据
+print(df.loc["2012-01-01"])
+# precipitation        0.0
+# temp_max            12.8
+# temp_min             5.0
+# wind                 4.7
+# weather          drizzle
+# Name: 2012-01-01 00:00:00, dtype: object
+
+# 切片获取数据
+print(df.loc["2012-01-01" : "2012-01-25"])
+#             precipitation  temp_max  temp_min  wind  weather
+# date
+# 2012-01-01            0.0      12.8       5.0   4.7  drizzle
+# 2012-01-02           10.9      10.6       2.8   4.5     rain
+# ...
+# 2012-01-24            1.2       9.4       4.4   3.2  drizzle
+# 2012-01-25            0.0       8.3       2.2   2.7      fog
+```
+
+ #### 时间间隔
+ ```python
+ts1 = pd.Timestamp("2006-07-28")
+ts2 = pd.Timestamp("2026-10-12")
+ts3 = ts2 - ts1
+print(ts3) # 7381 days 00:00:00
+print(type(ts3)) # <class 'pandas.Timedelta'>
+
+df = pd.read_csv("Pandas_Study_Data/weather.csv", parse_dates = ["date"])
+df["delta"] = df["date"] - df["date"][0]
+df.set_index(["delta"], inplace = True)
+print(df)
+              # date  precipitation  temp_max  temp_min  wind  weather
+# delta
+# 0 days  2012-01-01            0.0      12.8       5.0   4.7  drizzle
+# 1 days  2012-01-02           10.9      10.6       2.8   4.5     rain
+# ...
+# 33 days 2012-02-03            0.0       5.6      -2.2   1.8      fog
+# 34 days 2012-02-04           13.8       9.4       3.9   7.2     rain
+
+print(df.loc["3 days" : "7 days"])
+#              date  precipitation  temp_max  temp_min  wind weather
+# delta
+# 3 days 2012-01-04           20.3      12.2       5.6   4.7    rain
+# 4 days 2012-01-05            1.3       8.9       2.8   6.1    rain
+# 5 days 2012-01-06            0.0       7.2       1.1   3.4     fog
+# 6 days 2012-01-07            5.1       8.3       3.3   2.1    rain
+# 7 days 2012-01-08            0.0       6.7      -1.1   1.5     sun
+```
+
+#### 生成时间序列
+```python
+# days = pd.date_range("2026-10-12", "2026-10-20")
+# print(days)
+# DatetimeIndex(['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15',
+#                '2026-10-16', '2026-10-17', '2026-10-18', '2026-10-19',
+#                '2026-10-20'],
+#               dtype='datetime64[us]', freq='D')
+# days = pd.Series(days)
+# print(days)
+# 0   2026-10-12
+# 1   2026-10-13
+# 2   2026-10-14
+# 3   2026-10-15
+# 4   2026-10-16
+# 5   2026-10-17
+# 6   2026-10-18
+# 7   2026-10-19
+# 8   2026-10-20
+# dtype: datetime64[us]
+
+
+# 参数freq设置时间间隔
+days = pd.date_range("2026-10-12", "2026-10-20", freq = "3D")
+print(days) # DatetimeIndex(['2026-10-12', '2026-10-15', '2026-10-18'], dtype='datetime64[us]', freq='3D')
+days = pd.date_range("2026-10-12", "2026-10-20", freq = "W")
+print(days) # DatetimeIndex(['2026-10-18'], dtype='datetime64[us]', freq='W-SUN')
+
+# 参数periods设置长度
+days = pd.date_range("2026-10-12", periods = 5, freq = "2D")
+print(days)
+# DatetimeIndex(['2026-10-12', '2026-10-14', '2026-10-16', '2026-10-18',
+#                '2026-10-20'],
+#               dtype='datetime64[us]', freq='2D')
+```
+
+#### 重新采样
+```python
+# 重新采样
+df = pd.read_csv("Pandas_Study_Data/weather.csv", parse_dates = ["date"])
+df.set_index(["date"], inplace = True)
+print(df[["temp_max", "temp_min"]].resample("ME").mean())
+            # temp_max  temp_min
+# date
+# 2012-01-31   7.86129  1.829032
+# 2012-02-29   7.22500  0.700000
+
+
+x = df[["temp_max", "temp_min"]].resample("ME").mean()
+x.reset_index(inplace = True)
+print(x)
+        # date  temp_max  temp_min
+# 0 2012-01-31   7.86129  1.829032
+# 1 2012-02-29   7.22500  0.700000
+```
