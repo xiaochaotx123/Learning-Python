@@ -95,3 +95,40 @@ print(df2)
 # 0             30   4480.000
 ```
 
+#### 计算不同岗位并且不同部门的平均薪资
+```python
+print(df.groupby(["job_id", "department_id"]).groups)
+# {('AD_PRES', 90): RangeIndex(start=0, stop=1, step=1), ('AD_VP', 90): RangeIndex(start=1, stop=3, step=1), ('FI_ACCOUNT', 100): RangeIndex(start=9, stop=12, step=1), ('FI_MGR', 100): RangeIndex(start=8, stop=9, step=1), ('IT_PROG', 60): RangeIndex(start=3, stop=8, step=1), ('PU_CLERK', 30): RangeIndex(start=15, stop=19, step=1), ('PU_MAN', 30): RangeIndex(start=14, stop=15, step=1), ('SA_REP', 80): RangeIndex(start=12, stop=14, step=1), ('ST_CLERK', 50): Index([19, 25, 26, 27, 28, 29], dtype='int64'), ('ST_MAN', 50): RangeIndex(start=20, stop=25, step=1)}
+```
+```python
+different_job_and_department_df = df.groupby(["job_id", "department_id"])[["salary"]].mean()
+print(different_job_and_department_df)
+# job_id      department_id
+# AD_PRES     90               24000.000000
+# AD_VP       90               17000.000000
+# FI_ACCOUNT  100               8300.000000
+# FI_MGR      100              12000.000000
+# IT_PROG     60                5760.000000
+# PU_CLERK    30                2850.000000
+# PU_MAN      30               11000.000000
+# SA_REP      80                7350.000000
+# ST_CLERK    50                2716.666667
+# ST_MAN      50                7280.000000
+# Name: salary, dtype: float64
+
+print(different_job_and_department_df.loc[("AD_PRES", 90)]) # 24000.0
+
+different_job_and_department_df.reset_index(inplace = True)
+print(different_job_and_department_df)
+#        job_id  department_id        salary
+# 0     AD_PRES             90  24000.000000
+# 1       AD_VP             90  17000.000000
+# 2  FI_ACCOUNT            100   8300.000000
+# 3      FI_MGR            100  12000.000000
+# 4     IT_PROG             60   5760.000000
+# 5    PU_CLERK             30   2850.000000
+# 6      PU_MAN             30  11000.000000
+# 7      SA_REP             80   7350.000000
+# 8    ST_CLERK             50   2716.666667
+# 9      ST_MAN             50   7280.000000
+```
