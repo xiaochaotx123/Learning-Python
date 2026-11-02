@@ -4,7 +4,7 @@
 ```python
 class Restaurant:
 
-    def __init__(self,  restaurant_name, cuisine_type):
+    def __init__(self, restaurant_name, cuisine_type):
         self.name = restaurant_name
         self.type = cuisine_type
 
@@ -28,7 +28,7 @@ restaurant.open_restaurant()
 ```python
 class Restaurant:
 
-    def __init__(self,  restaurant_name, cuisine_type):
+    def __init__(self, restaurant_name, cuisine_type):
         self.name = restaurant_name
         self.type = cuisine_type
 
@@ -82,7 +82,7 @@ user1.greet_user()
 ```python
 class Restaurant:
 
-    def __init__(self,  restaurant_name, cuisine_type, number_served = 0):
+    def __init__(self, restaurant_name, cuisine_type, number_served = 0):
         self.name = restaurant_name
         self.type = cuisine_type
         self.number = number_served
@@ -161,7 +161,7 @@ print(user1.login_attempts)
 ```python
 class Restaurant:
 
-    def __init__(self,  restaurant_name, cuisine_type):
+    def __init__(self, restaurant_name, cuisine_type):
         self.name = restaurant_name
         self.type = cuisine_type
 
@@ -232,7 +232,7 @@ admin.show_privileges()
 #### 练习 9.8：权限 
 编写⼀个名为 Privileges 的类，它只有⼀个属性privileges，其中存储了练习 9.7 所述的字符串列表。将⽅法 show_privileges() 移到这个类中。在 Admin 类中，将⼀个Privileges 实例⽤作其属性。创建⼀个 Admin 实例，并使⽤⽅法show_privileges() 来显⽰权限。
 ```python
-class Privileges():
+class Privileges:
 
     def __init__(self):
         self.privileges = ["can add post", "can delete post", "can ban user", "view backend data"]
@@ -353,7 +353,7 @@ electric_car.battery.get_range()
 # t1.py
 class Restaurant:
 
-    def __init__(self,  restaurant_name, cuisine_type):
+    def __init__(self, restaurant_name, cuisine_type):
         self.name = restaurant_name
         self.type = cuisine_type
 
@@ -377,7 +377,7 @@ restaurant.open_restaurant()
 以为完成练习 9.8 ⽽做的⼯作为基础。将 User 类、Privileges 类和 Admin 类存储在⼀个模块中，再创建⼀个⽂件，在其中创建⼀个 Admin 实例并对其调⽤show_privileges() ⽅法，以确认⼀切都能正确地运⾏。
 ```python
 # t1.py
-class Privileges():
+class Privileges:
 
     def __init__(self):
         self.privileges = ["can add post", "can delete post", "can ban user", "view backend data"]
@@ -443,7 +443,7 @@ class User:
 # t2.py
 from t1 import User
 
-class Privileges():
+class Privileges:
 
     def __init__(self):
         self.privileges = ["can add post", "can delete post", "can ban user", "view backend data"]
@@ -502,42 +502,40 @@ for i in range(1, 11, 1):
 #### 练习 9.14：彩票 
 创建⼀个列表或元组，其中包含 10 个数和 5 个字⺟。从这个列表或元组中随机选择 4 个数或字⺟，并打印⼀条消息，指出只要彩票上是这 4 个数或字⺟，就中⼤奖了。
 ```python
-from random import choice
+from random import sample
 
 list = [20, 2, 26, 61, 11, 12, 21, 16, 9, 10, "x", "y", "k", "n", "w"]
 
-choice1 = choice(list)
-choice2 = choice(list)
-choice3 = choice(list)
-choice4 = choice(list)
-
-print("If you choose 61, 21, x, w, then you have won the big prize!")
+print(f"If your ticket is {sample(list, 4)}, then you have won the big prize!")
+# If your ticket is ['y', 10, 61, 'n'], then you have won the big prize!
 ```
 
 
 #### 练习 9.15：彩票分析 
 可以使⽤⼀个循环来理解中前述彩票⼤奖有多难。为此，创建⼀个名为 my_ticket 的列表或元组，再编写⼀个循环，不断地随机选择数或字⺟，直到中⼤奖为⽌。请打印⼀条消息，报告执⾏多少次循环才中了⼤奖。
 ```python
-from random import choice, shuffle
+from random import sample, shuffle
 
 my_ticket = []
 
-for i in range(1, 101, 1):
+for i in range(1, 51, 1):
     my_ticket.append(i)
-for i in range(ord("a"), ord("n") + 1, 1):
+for i in range(ord("a"), ord("z") + 1, 1):
     my_ticket.append(chr(i))
-
 
 shuffle(my_ticket)
 
+prize_ticket = [19, 31, "w", "x"]
 cnt = 0
 while True:
-    if choice(my_ticket) == 19:
+    print(f"cnt == {cnt}")
+    if sorted(sample(my_ticket, k = 4), key = str) == sorted(prize_ticket, key = str):
         break
     else:
         cnt += 1
 
 print(f"randomly drew {cnt} times before winning")
+# randomly drew 1041063 times before winning
 ```
 
 ### 练习 9.16：Python 3 Module of the Week 
@@ -567,6 +565,11 @@ print(random.randint(1, 10)) # 9
 - random.choice(seq)：从非空序列（如列表、元组、字符串）中随机选择一个元素。
 - random.choices(seq, k = n)：从非空序列（如列表、元组、字符串）中随机选择 n 元素（可以重复）。
 - random.sample(seq, k = n)：从非空序列（如列表、元组、字符串）中随机选择 n 元素（不可以重复）。
+```python
+print(random.choice(s)) # 7
+print(random.choices(s, k = 3)) # ['4', '2', '4']
+print(random.sample(s, k = 3)) # ['2', '9', '7']
+```
 
 #### 5. 打乱序列
 - random.shuffle(seq)：原地打乱一个可变序列（如列表）。注意它返回 None
