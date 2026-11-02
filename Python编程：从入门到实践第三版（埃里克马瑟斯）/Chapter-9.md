@@ -189,3 +189,391 @@ class IceCreamStand(Restaurant):
 ice = IceCreamStand("Hunan ice cream", "Frozen products", "Strawberries", "mangoes", "grapes", "bananas")
 ice.all_favors()
 ```
+
+#### 练习 9.7：管理员 
+管理员是⼀种特殊的⽤户。编写⼀个名为 Admin 的类，让它继承你为练习 9.3 或练习 9.5 完成编写的 User 类。添加⼀个名为 privileges 的属性，⽤来存储⼀个由字符串（如 "can add post"、"can delete post"、"can ban user" 等）组成的列表。编写⼀个名为 show_privileges() 的⽅法，显⽰管理员的权限。创建⼀个 Admin 实例，并调⽤这个⽅法。
+```python
+class User:
+
+    def __init__(self, first_name, last_name, age, gender):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
+        self.gender = gender
+
+    def describe_user(self):
+        print(f"this user's name：{self.first_name} {self.last_name}")
+        print(f"this user's age：{self.age}")
+        print(f"this user's gender：{self.gender}")
+
+    def greet_user(self):
+        print(f"Hello! How are you? {self.first_name} {self.last_name}")
+
+
+
+class Admin(User):
+
+    def __init__(self, first_name, last_name, age, gender):
+        super().__init__(first_name, last_name, age, gender)
+        self.privileges = ["can add post", "can delete post", "can ban user", "view backend data"]
+
+    def show_privileges(self):
+        print("\nthe administrator's permissions include：", end = " ")
+        for privilege in self.privileges:
+            print(privilege, end = ", ")
+
+
+
+admin = Admin("xiao", "chao", 21, "male")
+admin.show_privileges()
+```
+
+
+#### 练习 9.8：权限 
+编写⼀个名为 Privileges 的类，它只有⼀个属性privileges，其中存储了练习 9.7 所述的字符串列表。将⽅法 show_privileges() 移到这个类中。在 Admin 类中，将⼀个Privileges 实例⽤作其属性。创建⼀个 Admin 实例，并使⽤⽅法show_privileges() 来显⽰权限。
+```python
+class Privileges():
+
+    def __init__(self):
+        self.privileges = ["can add post", "can delete post", "can ban user", "view backend data"]
+
+    def show_privileges(self):
+        print("\nthe administrator's permissions include：", end=" ")
+        for privilege in self.privileges:
+            print(privilege, end=", ")
+
+
+class User:
+
+    def __init__(self, first_name, last_name, age, gender):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
+        self.gender = gender
+
+    def describe_user(self):
+        print(f"this user's name：{self.first_name} {self.last_name}")
+        print(f"this user's age：{self.age}")
+        print(f"this user's gender：{self.gender}")
+
+    def greet_user(self):
+        print(f"Hello! How are you? {self.first_name} {self.last_name}")
+
+
+class Admin(User):
+
+    def __init__(self, first_name, last_name, age, gender):
+        super().__init__(first_name, last_name, age, gender)
+        self.privileges = Privileges()
+
+
+admin = Admin("xiao", "chao", 21, "male")
+admin.privileges.show_privileges()
+```
+
+
+#### 练习 9.9：电池升级 
+在本节最后⼀个 electric_car.py 版本中，给Battery 类添加⼀个名为 upgrade_battery() 的⽅法。这个⽅法检查电池容量，如果电池容量不是 65，就设置为 65。创建⼀辆电池容量为默认值的电动汽⻋，调⽤⽅法 get_range()，然后对电池进⾏升级，并再次调⽤ get_range()。你将看到这辆汽⻋的续航⾥程增加了。
+```python
+class Car:
+    """一次模拟汽车的简单尝试"""
+
+    def __init__(self, make, model, year):
+        """初始化描述汽车的属性"""
+        self.make = make
+        self.model = model
+        self.year = year
+        self.odometer_reading = 0
+
+    def get_descriptive_name(self):
+        """返回格式规范的描述性名称"""
+        long_name = f"{self.year} {self.make} {self.model}"
+        return long_name.title()
+
+    def read_odometer(self):
+        """打印一个句子，指出汽车的行驶里程"""
+        print(f"This car has {self.odometer_reading} miles on it.")
+
+    def update_odometer(self, mileage):
+        """将里程表读数设置为给定的值"""
+        if mileage >= self.odometer_reading:
+            self.odometer_reading = mileage
+        else:
+            print("You can't rool back an odometer!")
+
+    def increment_odometer(self, miles):
+        """让里程表读数增加给定的量"""
+        self.odometer_reading += miles
+
+
+class Battery:
+    """一次模拟电动汽车电池的简单尝试"""
+
+    def __init__(self, battery_size = 40):
+        """初始化电池的属性"""
+        self.battery_size = battery_size
+
+    def describe_battery(self):
+        """打印⼀条描述电池容量的消息"""
+        print(f"This car has a {self.battery_size}-kWh battery.")
+
+    def get_range(self):
+        """打印一条消息，指出电池的续航里程"""
+        if self.battery_size == 40:
+            range = 150
+        elif self.battery_size == 65:
+            range = 225
+        print(f"this car can go about {range} miles on a full charge.")
+
+    def upgrade_battery(self):
+        if self.battery_size != 65:
+            self.battery_size = 65
+
+
+
+class ElectricCar(Car):
+    """电动汽车的独特之处"""
+
+    def __init__(self, make, model, year):
+        """初始化父类的属性"""
+        super().__init__(make, model, year)
+        self.battery = Battery()
+
+
+electric_car = ElectricCar("China", "Benchi", 2026)
+electric_car.battery.get_range()
+electric_car.battery.upgrade_battery()
+electric_car.battery.get_range()
+```
+
+
+#### 练习 9.10：导⼊ Restaurant 类 
+将最新的 Restaurant 类存储在⼀个模块中。在另⼀个⽂件中导⼊ Restaurant 类，创建⼀个 Restaurant 实例，并调⽤ Restaurant 的⼀个⽅法，以确认import 语句正确⽆误。
+```python
+# t1.py
+class Restaurant:
+
+    def __init__(self,  restaurant_name, cuisine_type):
+        self.name = restaurant_name
+        self.type = cuisine_type
+
+    def describe_restaurant(self):
+        print(f"The name of this restaurant is {self.name}")
+        print(f"The type of food sold is {self.type}")
+
+    def open_restaurant(self):
+        print("This restaurant is currently open for business")
+```
+```python
+from t1 import Restaurant
+
+restaurant = Restaurant("Chong Qing noodles", "noodles")
+restaurant.describe_restaurant()
+restaurant.open_restaurant()
+```
+
+
+#### 练习 9.11：导⼊ Admin 类 
+以为完成练习 9.8 ⽽做的⼯作为基础。将 User 类、Privileges 类和 Admin 类存储在⼀个模块中，再创建⼀个⽂件，在其中创建⼀个 Admin 实例并对其调⽤show_privileges() ⽅法，以确认⼀切都能正确地运⾏。
+```python
+# t1.py
+class Privileges():
+
+    def __init__(self):
+        self.privileges = ["can add post", "can delete post", "can ban user", "view backend data"]
+
+    def show_privileges(self):
+        print("\nthe administrator's permissions include：", end=" ")
+        for privilege in self.privileges:
+            print(privilege, end=", ")
+
+
+class User:
+
+    def __init__(self, first_name, last_name, age, gender):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
+        self.gender = gender
+
+    def describe_user(self):
+        print(f"this user's name：{self.first_name} {self.last_name}")
+        print(f"this user's age：{self.age}")
+        print(f"this user's gender：{self.gender}")
+
+    def greet_user(self):
+        print(f"Hello! How are you? {self.first_name} {self.last_name}")
+
+
+class Admin(User):
+
+    def __init__(self, first_name, last_name, age, gender):
+        super().__init__(first_name, last_name, age, gender)
+        self.privileges = Privileges()
+```
+```python
+from t1 import Admin
+
+admin = Admin("xiao", "chao", 21, "male")
+admin.privileges.show_privileges()
+```
+
+
+#### 练习 9.12：多个模块 
+将 User 类存储在⼀个模块中，并将 Privileges 类和 Admin 类存储在另⼀个模块中。再创建⼀个⽂件，在其中创建⼀个 Admin 实例并对其调⽤ show_privileges() ⽅法，以确认⼀切依然能够正确地运⾏。
+```python
+# t1.py
+class User:
+
+    def __init__(self, first_name, last_name, age, gender):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.age = age
+        self.gender = gender
+
+    def describe_user(self):
+        print(f"this user's name：{self.first_name} {self.last_name}")
+        print(f"this user's age：{self.age}")
+        print(f"this user's gender：{self.gender}")
+
+    def greet_user(self):
+        print(f"Hello! How are you? {self.first_name} {self.last_name}")
+```
+```python
+# t2.py
+from t1 import User
+
+class Privileges():
+
+    def __init__(self):
+        self.privileges = ["can add post", "can delete post", "can ban user", "view backend data"]
+
+    def show_privileges(self):
+        print("\nthe administrator's permissions include：", end=" ")
+        for privilege in self.privileges:
+            print(privilege, end=", ")
+
+
+class Admin(User):
+
+    def __init__(self, first_name, last_name, age, gender):
+        super().__init__(first_name, last_name, age, gender)
+        self.privileges = Privileges()
+```
+```python
+from t2 import Admin
+
+admin = Admin("xiao", "chao", 21, "male")
+admin.privileges.show_privileges()
+```
+
+
+#### 练习 9.13：骰⼦ 
+创建⼀个 Die 类，它包含⼀个名为 sides 的属性，该属性的默认值为 6。编写⼀个名为 roll_die() 的⽅法，它打印位于 1 和骰⼦⾯数之间的随机数。创建⼀个 6 ⾯的骰⼦并掷 10 次。  
+创建⼀个 10 ⾯的骰⼦和⼀个 20 ⾯的骰⼦，再分别掷 10 次。
+```python
+from random import randint
+
+class Die:
+
+    def __init__(self, sides = 6):
+        self.sides = sides
+
+    def roll_die(self):
+        print(randint(1, self.sides))
+
+die1 = Die()
+for i in range(1, 11, 1):
+    print(f"\nsides = {die1.sides}", end = " ")
+    die1.roll_die()
+
+die2 = Die(10)
+for i in range(1, 11, 1):
+    print(f"\nsides = {die2.sides}", end=" ")
+    die2.roll_die()
+
+die3 = Die(20)
+for i in range(1, 11, 1):
+    print(f"\nsides = {die3.sides}", end=" ")
+    die3.roll_die()
+```
+
+
+#### 练习 9.14：彩票 
+创建⼀个列表或元组，其中包含 10 个数和 5 个字⺟。从这个列表或元组中随机选择 4 个数或字⺟，并打印⼀条消息，指出只要彩票上是这 4 个数或字⺟，就中⼤奖了。
+```python
+from random import choice
+
+list = [20, 2, 26, 61, 11, 12, 21, 16, 9, 10, "x", "y", "k", "n", "w"]
+
+choice1 = choice(list)
+choice2 = choice(list)
+choice3 = choice(list)
+choice4 = choice(list)
+
+print("If you choose 61, 21, x, w, then you have won the big prize!")
+```
+
+
+#### 练习 9.15：彩票分析 
+可以使⽤⼀个循环来理解中前述彩票⼤奖有多难。为此，创建⼀个名为 my_ticket 的列表或元组，再编写⼀个循环，不断地随机选择数或字⺟，直到中⼤奖为⽌。请打印⼀条消息，报告执⾏多少次循环才中了⼤奖。
+```python
+from random import choice, shuffle
+
+my_ticket = []
+
+for i in range(1, 101, 1):
+    my_ticket.append(i)
+for i in range(ord("a"), ord("n") + 1, 1):
+    my_ticket.append(chr(i))
+
+
+shuffle(my_ticket)
+
+cnt = 0
+while True:
+    if choice(my_ticket) == 19:
+        break
+    else:
+        cnt += 1
+
+print(f"randomly drew {cnt} times before winning")
+```
+
+### 练习 9.16：Python 3 Module of the Week 
+要了解 Python 标准库，⼀个很不错的资源是⽹站 Python 3 Module of the Week。请访问该⽹站并查看其中的⽬录，找⼀
+个你感兴趣的模块进⾏探索，从模块 random开始可能是个不错的选择。  
+
+#### 1. 导入模块
+```python
+import random
+```
+
+#### 2. 生成随机浮点数
+- random.random()：生成一个 [0.0, 1.0) 之间的随机浮点数
+- random.uniform(a, b)：生成一个 [a, b] 之间的随机浮点数
+```python
+print(random.random()) # 0.1482560820611496 
+print(random.uniform(1., 1.1)) # 1.0990825428837556
+```
+
+#### 3. 生成随机整数
+- random.randint(a, b)：生成一个 [a, b] 之间的随机整数（包含 a 和 b）
+```python
+print(random.randint(1, 10)) # 9
+```
+
+#### 4. 从序列中随机选择
+- random.choice(seq)：从非空序列（如列表、元组、字符串）中随机选择一个元素。
+- random.choices(seq, k = n)：从非空序列（如列表、元组、字符串）中随机选择 n 元素（可以重复）。
+- random.sample(seq, k = n)：从非空序列（如列表、元组、字符串）中随机选择 n 元素（不可以重复）。
+
+#### 5. 打乱序列
+- random.shuffle(seq)：原地打乱一个可变序列（如列表）。注意它返回 None
+```python
+list = list(range(1, 11, 1))
+print(list) # [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+random.shuffle(list)
+print(list) # [2, 3, 5, 8, 9, 4, 7, 10, 1, 6]
+```
