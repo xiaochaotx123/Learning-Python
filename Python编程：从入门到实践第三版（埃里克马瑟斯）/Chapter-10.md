@@ -93,7 +93,7 @@ from pathlib import Path
 
 guest_book_name = ""
 
-print("if you want to exit, please enter \"quti\"")
+print("if you want to exit, please enter \"quit\"")
 while True:
     name = input("please enter a name：")
     if name == "quit":
@@ -103,7 +103,7 @@ while True:
 Path("guest_book.text").write_text(guest_book_name)
 ```
 ```python
-guest_book.txt
+guest_book.text
 xiaochao
 xiaoyue
 xiaoling
@@ -160,14 +160,11 @@ while True:
 ```python
 from pathlib import Path
 
-try:
-    message_cats = Path("cats.txt").read_text()
-    message_dogs = Path("dogs.txt").read_text()
-except FileNotFoundError:
-    print("The file was not found, please check")
-else:
-    print(message_cats)
-    print(message_dogs)
+for filename in ["cats.txt", "dogs.txt"]:
+    try:
+        print(Path(filename).read_text())
+    except FileNotFoundError:
+        print(f"Sorry, the file {filename} does not exist.")
 ```
 
 
@@ -211,4 +208,123 @@ print(story.lower().count("the ")) # 57
 ```
 
 
+#### 练习 10.11：喜欢的数 
+编写⼀个程序，提⽰⽤户输⼊⾃⼰喜欢的数，并使⽤ json.dumps() 将这个数存储在⽂件中。再编写⼀个程序，从⽂件中读取这个值，并打印如下消息。  
+&nbsp;&nbsp;&nbsp;&nbsp;I know your favorite number! It's _____.    
+```python
+from pathlib import Path
+import json
 
+path = Path("user_number.json")
+like_number = int(input("Please enter the number you like："))
+contents = json.dumps(like_number)
+path.write_text(contents)
+
+
+contents = path.read_text()
+like_number = json.loads(contents)
+print(f"I know your favorite number! It's {like_number}. ")
+```
+```python
+# user_number.json
+"19"
+```
+
+
+#### 练习 10.12：记住喜欢的数 
+将你在完成练习 10.11 时编写的两个程序合⽽为⼀。如果存储了⽤户喜欢的数，就向⽤户显⽰它，否则提⽰⽤户输⼊⾃⼰喜欢的数并将其存储在⽂件中。运⾏这个程序两次，看看它是否像预期的那样⼯作。
+```python
+from pathlib import Path
+import json
+
+path = Path("user_number.json")
+if path.exists():
+    contents = path.read_text()
+    like_number = json.loads(contents)
+    print(f"I know your favorite number! It's {like_number}. ")
+else:
+    like_number = int(input("Please enter the number you like："))
+    contents = json.dumps(like_number)
+    path.write_text(contents)
+``
+
+#### 练习 10.13：⽤户字典 
+⽰例 remember_me.py 只存储了⼀项信息——⽤户名。请扩展该⽰例，让⽤户同时提供另外两项信息，再将收集到的所有信息存储到⼀个字典中。使⽤ json.dumps() 将这个字典写⼊⽂件，并使⽤ json.loads() 从⽂件中读取它。打印⼀条摘要消息，指出程序记住了有关⽤户的哪些信息。
+```python
+from pathlib import Path
+import json
+
+user_messages = {}
+path = Path("user_messages.json")
+
+def get_username():
+    user_name = input("Please enter your name: ")
+    user_messages["name"] = user_name
+
+def get_age():
+    user_age = input("Please enter your age: ")
+    user_messages["age"] = user_age
+
+def get_gender():
+    user_gender = input("Please enter your gender: ")
+    user_messages["gender"] = user_gender
+
+get_username()
+get_age()
+get_gender()
+
+contents = json.dumps(user_messages)
+path.write_text(contents)
+
+read_user_messages = path.read_text()
+read_contents = json.loads(read_user_messages)
+for key, value in read_contents.items():
+    print(f"the user's {key} is {value}")
+```
+```python
+# user_messages.json
+{"name": "xiaochao", "age": "21", "gender": "male"}
+```
+
+
+#### 练习 10.14：验证⽤户 
+最后⼀个 remember_me.py 版本假设⽤户要么已输⼊其⽤户名，要么是⾸次运⾏该程序。我们应修改这个程序，以防当前⽤户并⾮上次运⾏该程序的⽤户。  
+为此，在 greet_user() 中打印欢迎⽤户回来的消息之前，询问他⽤户名是否是对的。如果不对，就调⽤ get_new_username() 让⽤户输⼊正确的⽤户名。
+```python
+from pathlib import Path
+import json
+
+def get_stored_username(path):
+    """如果储存了用户名，就获取它"""
+    if path.exists():
+        contents = path.read_text()
+        username = json.loads(contents)
+        return username
+    else:
+        return None
+
+def get_new_username(path):
+    """提示用户输入用户名"""
+    username = input("What is your name? ")
+    contents = json.dumps(username)
+    path.write_text(contents)
+    return username
+
+def greet_user():
+    """问候用户，并指出其名字"""
+    path = Path('username.json')
+    username = get_stored_username(path)
+
+    if username:
+        response = input(f"Excuse me, is your name {username}? (Yes or No) ")
+        if response == "Yes":
+            print(f"Welcome back, {username}!")
+        else:
+            username = get_new_username(path)
+            print(f"We'll remember you when you come back, {username}!")
+    else:
+        username = get_new_username(path)
+        print(f"We'll remember you when you come back, {username}!")
+
+greet_user()
+```
