@@ -1,3 +1,5 @@
+### Tutorial
+
 #### 选择建模数据  
 
 你的数据集有太多的变量，你无法理解，甚至无法很好地打印出来。你如何将如此庞大的数据量缩减到你能理解的程度？  
@@ -115,22 +117,6 @@ print(melbourne_model.predict(X.head()))
   
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ```python
 from sklearn.tree import DecisionTreeRegressor
 
@@ -210,3 +196,173 @@ melbourne_model.get_params()           # 看看它当前有哪些参数
 |`fit` 是原地修改|它改的是`melbourne_model` 这个对象本身，所以模型必须赋给变量保存下来|
 |X 和 y 的行数必须一致|`X` 有 1000 行，`y` 也必须是 1000 个，否则直接报`ValueError`|
 |X 必须是数值型二维表|有字符串列会报错（Titanic 里你用`get_dummies` 就是为了解决这个）|
+
+
+
+
+### Exercise  
+
+
+#### 步骤1：指定预测目标  
+选择与销售价格对应的目标变量。将其保存到一个名为y的新变量中。您需要打印列列表以找到所需列的名称  
+
+```python
+# print the list of columns in the dataset to find the name of the prediction target
+print(home_data.columns)
+```  
+```python
+y = home_data['SalePrice']
+
+# Check your answer
+step_1.check()
+```   
+
+
+#### 第二步：创建X  
+
+现在，您将创建一个名为X的DataFrame，其中包含预测特征。  
+
+由于您只需要原始数据中的一些列，因此您将首先在X中创建一个包含所需列名称的列表。  
+
+您将仅使用列表中的以下列（您可以复制并粘贴整个列表以节省一些输入，但仍需要添加引号）：  
+
+- LotArea
+- YearBuilt
+- 1stFlrSF
+- 2ndFlrSF
+- FullBath
+- BedroomAbvGr
+- TotRmsAbvGrd
+
+创建该功能列表后，使用它创建用于拟合模型的DataFrame  
+
+```python
+# Create the list of features below
+feature_names = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
+
+# Select data corresponding to features in feature_names
+X = home_data[feature_names]
+
+# Check your answer
+step_2.check()
+```
+
+
+审查数据  
+在构建模型之前，快速查看X以验证其是否合理   
+```python
+# Review data
+# print description or statistics from X
+print(home_data.describe())
+
+# print the top few lines
+print(home_data.head())
+```
+
+#### 步骤3：指定并拟合模型  
+
+创建一个“DecisionTreeRegressor”并将其保存为iowa_model。确保您已从sklearn完成相关导入以运行此命令。  
+
+然后，使用您在上面保存的“X”和“y”中的数据来拟合您刚才创建的模型。   
+
+```python
+from sklearn.tree import DecisionTreeRegressor
+#specify the model. 
+#For model reproducibility, set a numeric value for random_state when specifying the model
+iowa_model = DecisionTreeRegressor(random_state = 1)
+
+# Fit the model
+iowa_model.fit(X, y)
+
+# Check your answer
+step_3.check()
+```  
+
+
+#### 第四步：做出预测  
+使用“X”作为数据，使用模型的“predict”命令进行预测。将结果保存到一个名为“predictions”的变量中。
+
+```python
+predictions = iowa_model.predict(X)
+print(predictions)
+
+# Check your answer
+step_4.check()
+```
+
+
+想想你的结果  
+使用“head”方法将前几个预测值与这些房屋的实际房屋价值（以“y”表示）进行比较。有什么奇怪的吗？  
+```python
+# You can write code in this cell
+
+print(iowa_model.predict(X))
+
+y_head  = home_data['SalePrice'].head()
+
+from sklearn.tree import DecisionTreeRegressor
+
+model1 = DecisionTreeRegressor(random_state = 1)
+model1.fit(X.head(), y_head)
+
+print(model1.predict(X))
+```  
+输出：
+```python
+[208500. 181500. 223500. ... 266500. 142125. 147500.]
+[208500. 181500. 223500. ... 250000. 140000. 140000.]
+```  
+
+#### 这里的“模型”到底是什么  
+就是决策树，具体的来说：模型是`iowa_model`这个Python对象，它内部存了两样东西：    
+
+
+|内部存的东西|内容|
+|-----------|----|
+|结构|一串 if/else 规则（哪个特征、阈值多少、往左还是往右）|
+|叶子上的数值|走到这片叶子时，应该输出多少价格|  
+
+在`fit()`之前，这个对象是`空白`的，只有默认参数。`fit()` 之后，树的结构和叶子数值被填满了—— "模型"就是这棵被数据填满的树 。  
+  
+
+
+#### 什么叫"不限深度"、"切到叶子只剩一两个样本"、"过拟合  
+刚才说到这个决策树模型实际上是if/else 不断的自动分组实现预测的，这样的分割将数据使得形成了类似于树的结构   
+
+不限深度的意思是 只要当前的数据仍能分割，就会不断的分割下去，直到不能分割  
+
+不能分割的条件就是：
+1.叶子里的样本 特征完全相同 ，无论怎么切都分不开  
+2.叶子只剩 1 个样本 （sklearn 默认`min_samples_leaf=1` ）  
+3.再切也不会让误差下降    
+
+
+因为叶子最终只剩 1 个样本，而叶子的预测值就等于样本的价格——所以训练集的预测会 100% 等于真实值。  
+
+
+这就叫`"过拟合"`：模型太复杂（树太深），把训练数据的每一个细节都记了下来，包括偶然的噪声。结果：训练集上完美，新数据上崩盘。  
+
+用学习打比方： 你把练习册的每一道题的答案（甚至连题号、页码）全背了下来 。这本练习册再考一遍，你满分；换一本新练习册，你一道都做不出来——因为你背的是"答案"，不是"解题方法"。
+
+反过来，如果树太浅（比如`max_depth=1` ），它只能问一个问题，什么都学不到，这叫 `欠拟合` 。两个极端都不好，中间才是最佳点  
+
+
+#### 为什么后面几个预测值不一样？"平均值"是什么意思  
+
+关键在这里： 叶子可以装不止 1 套房。    
+ 
+前面说"切到最后每片叶子只剩 1 个样本"，但有个例外—— 如果两套房在全部 7 个特征上完全相同，树根本没能力区分它们 。  
+
+7 个特征一模一样，树切到这里切不动了，两套房只能挤在同一片叶子里。
+
+那这片叶子的预测值该是多少？ 取叶子内所有样本的平均值
+
+所以你看到`266500 → 250000` 、`142125 → 140000` 这种"对不上"的值，就是 这片叶子装了好几个样本，输出的是它们的平均价 ，不是任何一套房的精确价格。  
+ 
+
+**记住这条规律：决策树的每个叶子，输出的都是叶子内样本标签的平均值。**  
+
+
+#### 喂多少数据就只能输出多少种预测值？  
+
+基本对，精确表述是：输出值的种类数 ≤ 叶子数量 ≤ 训练样本数  
