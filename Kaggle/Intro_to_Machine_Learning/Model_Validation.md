@@ -1,3 +1,5 @@
+### Tutorial
+
 ### 模型验证：评估模型的性能，以便对各种方案进行测试和比较。    
 
 
@@ -164,3 +166,107 @@ val_y             →  算误差用（模型从来没见过它）
 - `train_test_split` 有个弱点： 切法随机，分数会抖 。你换个`random_state` ，验证 MAE 可能差几千美元。所以真实比赛中会用 **K 折交叉验证（cross-validation）** ：把数据切成 5 折，轮流拿 1 折当验证、其余训练，跑 5 次取平均。 分数更稳、更可信 。这是你打 Playground 时必用的技能，现在知道有这么个东西就行。
 ### 总结  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+### Exercise  
+
+
+运行下面的单元格，以设置你的编码环境，也就是之前练习中未完成的那些设置。  
+
+```python
+# Code you have previously used to load data
+import pandas as pd
+from sklearn.tree import DecisionTreeRegressor
+
+# Path of the file to read
+iowa_file_path = '../input/home-data-for-ml-course/train.csv'
+
+home_data = pd.read_csv(iowa_file_path)
+y = home_data.SalePrice
+feature_columns = ['LotArea', 'YearBuilt', '1stFlrSF', '2ndFlrSF', 'FullBath', 'BedroomAbvGr', 'TotRmsAbvGrd']
+X = home_data[feature_columns]
+
+# Specify Model
+iowa_model = DecisionTreeRegressor()
+# Fit Model
+iowa_model.fit(X, y)
+
+print("First in-sample predictions:", iowa_model.predict(X.head()))
+print("Actual target values for those homes:", y.head().tolist())
+
+# Set up code checking
+from learntools.core import binder
+binder.bind(globals())
+from learntools.machine_learning.ex4 import *
+print("Setup Complete")
+```  
+
+
+#### 步骤 1：分割你的数据  
+
+使用 `train_test_split` 函数来分割你的数据。
+
+请为 `random_state=1` 提供该参数，这样 `check` 在验证代码时就能知道该如何处理。
+
+记住，你的特征数据被加载到了 DataFrame X 中，而目标变量则被加载到了 y 中。  
+
+```python
+# Import the train_test_split function and uncomment
+from sklearn.model_selection import train_test_split  
+
+# fill in and uncomment
+train_X, val_X, train_y, val_y = train_test_split(X, y, random_state = 1)
+
+# Check your answer
+step_1.check()
+```
+
+#### 步骤 2：指定模型并对其进行拟合   
+
+创建一個 `DecisionTreeRegressor` 模型，并将其适配到相关数据上。在创建模型时，将 `random_state` 设置为 1。  
+
+```python
+# You imported DecisionTreeRegressor in your last exercise
+# and that code has been copied to the setup code above. So, no need to
+# import it again
+
+# Specify the model
+iowa_model = DecisionTreeRegressor(random_state = 1)  
+
+# Fit iowa_model with the training data.
+iowa_model.fit(train_X, train_y)
+
+# Check your answer
+step_2.check()
+```  
+
+#### 步骤 3：使用验证数据进行预测  
+
+
+```python
+# Predict with all validation observations
+val_predictions = iowa_model.predict(val_X)
+
+# Check your answer
+step_3.check()
+```  
+
+检查你的预测结果与验证数据中的实际值是否一致。  
+
+```python
+# print the top few validation predictions
+print(val_predictions[0:5])
+# print the top few actual prices from validation data
+print(val_y[0:5])
+```
+
+#### 步骤 4：计算验证数据中的平均绝对误差  
+
+```python
+from sklearn.metrics import mean_absolute_error
+val_mae = mean_absolute_error(val_y, val_predictions)
+
+# uncomment following line to see the validation_mae
+print(val_mae)
+
+# Check your answer
+step_4.check()
+```  
