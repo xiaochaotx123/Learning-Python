@@ -250,4 +250,209 @@ dtypes: float64(3), int64(35), object(43)
 `YearBuilt` /`YearRemodAdd` ：int64，但语义是 年份 ，算平均值没意义  
 `MoSold` ：int64，但语义是月份，12 月和 1 月是相邻的  
 
+## 3.3 绘制柱状图直观表示缺失值的情况
+```python
+plt.figure(figsize = (24, 8))
+cols_with_null = df_train.isnull().sum().sort_values(ascending = False)
+sns.barplot(x = cols_with_null.index, y = cols_with_null)
+
+plt.xticks(rotation = 90)
+plt.show()
+
+cols_with_null[0:20:1]
+
+# PoolQC          1453
+# MiscFeature     1406
+# Alley           1369
+# Fence           1179
+# MasVnrType       872
+# FireplaceQu      690
+# LotFrontage      259
+# GarageQual        81
+# GarageFinish      81
+# GarageType        81
+# GarageYrBlt       81
+# GarageCond        81
+# BsmtFinType2      38
+# BsmtExposure      38
+# BsmtCond          37
+# BsmtQual          37
+# BsmtFinType1      37
+# MasVnrArea         8
+# Electrical         1
+# Condition2         0
+# BldgType           0
+# Neighborhood       0
+# LandSlope          0
+# LotConfig          0
+# Condition1         0
+# LandContour        0
+# LotShape           0
+# Street             0
+# LotArea            0
+# MSSubClass         0
+# dtype: int64
+```
+![alt text](dalao_one_picture_one.png)  
+  
+- plt.figure(figsize = (24, 8))  
+    `plt.figure()` 的意思是“新建一张空白画布”。它的参数`figsize` 是画布的尺寸，单位是 英寸 ，括号里写`(宽, 高)` 。   
+
+    这里设为 24 × 8 英寸，按 matplotlib 默认的 100 dpi 计算，实际输出约为 2400 × 800 像素 ，即一张很宽的横图。
+
+    之所以 之所以要设置得这么宽，是因为横轴上有 81 个列名；如果改用默认的 6.4 × 4.8 英寸，列名会重叠到互相无法分辨。
+
+    这一步必须放在画图之前。如果先画图、再调整画布大小，图已经画在旧画布上了。  
+
+- cols_with_null = df_train.isnull().sum().sort_values(ascending = False)  
+    需要操作的对象是df_train。  
+    然后 .isnull() 方法可以判断每个元素是否为空。   
+    再然后 .sum() 方法可以统计每个列的缺失值数量。  
+    最后 .sort_values(ascending = False) 方法可以按缺失值数量从大到小排序。其中ascending = False 表示按缺失值数量从大到小排序。如果不写，默认是按缺失值数量从小到大排序。 
+
+- sns.barplot(x = cols_with_null.index, y = cols_with_null)  
+    画柱状图，`barplot` 需要指定两个轴分别放什么：  
+    `x` 放进的是 `cols_with_null.index` ，也就是那 81 个列名。`.index` 是 Series 的“标签”部分，这里就是列名。   
+    `y` 放进的是 `cols_with_null` ，也就是那 81 个缺失值数量。`.values` 是 Series 的“数据”部分，这里就是缺失值数量。   
+
+- plt.xticks(rotation = 90)  
+    `xticks` 是“x 轴刻度”，`rotation` 是旋转角度。`90` 表示逆时针旋转 90 度，文字变成竖排。  
+    81 个英文列名（`GarageFinish` 、`BsmtExposure` 这种长词）横着排根本放不下，转成竖排才勉强挤得进去。  
+    如果觉得文字是从下往上读、别扭，可以改成`rotation = -90` ，就变成从上往下读了。  
+    这一行 必须在 barplot 之后 ，因为刻度是画图时才生成出来的，图还没画就去改刻度会报错或无效。  
+
+
+#### 这个cols_with_null 是一个 Series ，它的索引是列名，值是缺失值数量。
+
+#### 成组缺失不是巧合 
+```python
+GarageQual        81
+GarageFinish      81
+GarageType        81
+GarageYrBlt       81
+GarageCond        81
+BsmtFinType2      38
+BsmtExposure      38
+BsmtCond          37
+BsmtQual          37
+BsmtFinType1      37
+```   
+Garage 的五列全是 81，Bsmt 的几列全是 38——说明是 **同一批房子** 同时缺这些列。一批房子没有车库，所以车库的类型、年份、装修、质量、状况全都填不了；同理，一批房子没有地下室。
+
+
+
+## 对于缺失值的处理，可以直接删除缺失值，但是这样会丢失一些信息，大佬最终没有选择删除缺失值。 
+```python
+#cols_to_drop=(cols_with_null.head(6).index).tolist()
+#df_train.drop(cols_to_drop,axis=1,inplace=True)
+#df_test.drop(cols_to_drop,axis=1,inplace=True)
+#df_train.shape
+```  
+
+- cols_to_drop=(cols_with_null.head(6).index).tolist()  
+    将缺失值前 6 个列的索名转换为列表。
+- df_train.drop(cols_to_drop,axis=1,inplace=True)  
+    删除缺失值前 6 个列。  
+    axis = 0 表示按列删除, axis = 1 表示按行删除。  
+    inplace = True 表示在原数据上操作，不返回新的数据。    
+
+#### 为什么他最终放弃了这个思路？
+删掉这 6 列，等于把 PoolQC、Alley、Fence、FireplaceQu 也一起丢掉了。而这四列的 NaN 并不是真的“缺失”：  
+- 1453 个 PoolQC 空 → 只有 7 套房有泳池
+- 1179 个 Fence 空 → 只有 281 套房有围栏  
+- 690 个 FireplaceQu 空 → 差不多一半房子没壁炉
+
+“**有没有泳池、有没有围栏、有没有壁炉”本身就是影响房价的强特征** ，删掉等于主动丢弃信息。
+
+## 简要列出一些特点  
+
+### 相关热力图
+```python
+plt.figure(figsize = (15, 12))
+sns.heatmap(df_train.corr(numeric_only = True))
+plt.show()
+```
+![alt text](04cfabe83475eb1b19736069a21ba258825b6ebc41a217ac048e9cf0ce837914.png)
+- sns.heatmap() 是画热力图的函数。 
+    热力图（heatmap） 。它把一个二维表格的数字，用 颜色 画成一片网格：    
+    左边一排标签代表行，底下那排标签代表列，每个格子的颜色深浅，代表行和列交叉位置上的那个数字  
+    它的作用就是让“数字大小”变成“一眼能看出的颜色差异”，适合快速发现规律，不适合查精确值。
+- df_train.corr()  
+    `corr` 是 correlation（相关性）的缩写。它做的事是： **把 38 个数值列两两配对，每一对算出一个相关系数** ，最后得到一个 38 × 38 的表。  
+    相关系数衡量的是“两个变量是否同涨同跌”，取值范围 −1 到 +1 ：  
+    |值|含义|例子|
+    |--|----|---|
+    |接近 +1|一个涨，另一个也涨|面积越大，房价越高|
+    |接近 0|没有线性关系|门牌号和房价|
+    |接近 −1|一个涨，另一个跌|房龄越大，价格越低（理论上）|  
+    所以`df_train.corr()` 本身就是一个 **38 × 38 的 DataFrame** ，行名和列名都是特征名。正因为它是规整的数字表，才能直接交给`heatmap` 去涂色。
+- numeric_only = True 
+    `corr()` 内部的第一步是： 把整张表转换成一个纯数字矩阵 ，然后才能做数学运算。  
+    `numeric_only = True` 表示只考虑数值列，不考虑非数值列。  
+    非数值列（如 `PoolQC` `Alley` `Fence` `FireplaceQu` 等）在转换为纯数字矩阵时会被跳过，所以最终得到的矩阵中不会出现非数值列的特征。  
+
+
+#### 热力图可以帮助我们发现哪些特征与目标变量（SalePrice）相关性高    
+直接看 最底下一行 （或者最右边一列，一样）。  
+
+横着扫过去，凡是颜色偏浅、发橘发粉的格子，就是和房价正相关的特征。
+
+能明显看出偏浅的是：OverallQual     YearBuilt     YearRemodAdd....  
+
+**更加实用的还是排序，直接将所有特征与SalePrice的相关性排序出来：**
+```python
+corr = df_train.corr(numeric_only=True)
+corr['SalePrice'].sort_values(ascending=False)
+# SalePrice        1.000000
+# OverallQual      0.790982
+# GrLivArea        0.708624
+# GarageCars       0.640409
+# GarageArea       0.623431
+# TotalBsmtSF      0.613581
+# 1stFlrSF         0.605852
+# FullBath         0.560664
+# TotRmsAbvGrd     0.533723
+# YearBuilt        0.522897
+# YearRemodAdd     0.507101
+# GarageYrBlt      0.486362
+# MasVnrArea       0.477493
+# Fireplaces       0.466929
+# BsmtFinSF1       0.386420
+# LotFrontage      0.351799
+# WoodDeckSF       0.324413
+# 2ndFlrSF         0.319334
+# OpenPorchSF      0.315856
+# HalfBath         0.284108
+# LotArea          0.263843
+# BsmtFullBath     0.227122
+# BsmtUnfSF        0.214479
+# BedroomAbvGr     0.168213
+# ScreenPorch      0.111447
+# PoolArea         0.092404
+# MoSold           0.046432
+# 3SsnPorch        0.044584
+# BsmtFinSF2      -0.011378
+# BsmtHalfBath    -0.016844
+# MiscVal         -0.021190
+# Id              -0.021917
+# LowQualFinSF    -0.025606
+# YrSold          -0.028923
+# OverallCond     -0.077856
+# MSSubClass      -0.084284
+# EnclosedPorch   -0.128578
+# KitchenAbvGr    -0.135907
+# Name: SalePrice, dtype: float64
+```
+
+
+# 4. 异常值检测  
+```python
+fig, ax=plt.subplots(1,3,figsize=(28,7))
+sns.scatterplot(x=df_train.GrLivArea,y=df_train.SalePrice,size=df_train.BedroomAbvGr,hue=df_train.OverallQual, ax=ax[0])
+ax[0].set_title("Ground Living Area")
+sns.scatterplot(x=df_train.LotArea,y=df_train.SalePrice,size=df_train.BedroomAbvGr,hue=df_train.OverallQual, ax=ax[1])
+ax[1].set_title("LOT AREA")
+sns.boxplot(x=df_train.SalePrice);
+```  
+
 
