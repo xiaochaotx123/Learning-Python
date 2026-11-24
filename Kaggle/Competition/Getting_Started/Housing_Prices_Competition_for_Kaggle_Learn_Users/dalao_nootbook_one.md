@@ -454,5 +454,296 @@ sns.scatterplot(x=df_train.LotArea,y=df_train.SalePrice,size=df_train.BedroomAbv
 ax[1].set_title("LOT AREA")
 sns.boxplot(x=df_train.SalePrice);
 ```  
+![alt text](p3.png)
+
+
+- fig, ax=plt.subplots(1,3,figsize=(28,7)) 
+    绘制三张子图，每个子图的大小为 (28,7)。
+    `fig` 是整个图，`ax` 是每个子图的轴对象。
+    `ax` 是一个列表，每个元素都是一个子图的轴对象。
+    `ax[0]` 是第一个子图的轴对象，`ax[1]` 是第二个子图的轴对象，`ax[2]` 是第三个子图的轴对象。
+- sns.scatterplot() 是画散点图的函数。
+    x 是 x 轴的变量，y 是 y 轴的变量。
+    size 是点的大小，hue 是点的颜色。
+    ax 是子图的轴对象，用于指定子图的位置。
+    `set_title()` 是设置子图标题的函数。
+    `set_title("Ground Living Area")` 是设置第一个子图的标题为 "Ground Living Area"。
+    `set_title("LOT AREA")` 是设置第二个子图的标题为 "LOT AREA"。
+- sns.boxplot() 是画箱线图的函数。
+    x 是 x 轴的变量。
+    ax 是子图的轴对象，用于指定子图的位置。
+    箱线图用于展示数据的分布情况，包括中位数、四分位数、异常值等。
+
+#### 第一条信息：`GrLivArea > 4000` 是离群点，面积 > 4000 且价格明显偏低的记录，是异常交易，可以考虑剔除。  
+面积 4600 左右，价格 18 万；面积 4100 左右，价格 16 万。**面积这么大，价格却只比 1500 平方英尺的房子略高。** 这不是“贵”，而是“面积和价格不匹配”。  
+
+- 对于第一条信息，我是不是可以说GrLivArea超过3000的就算是离群点，因为小于3000的非常密集，超过3000的点都是散乱，而却数量很少。      
+
+    这么说是错误的！      
+
+    **3000 之后密度确实断崖式下降** 。但结论要修正：密度低不等于离群点。  
+
+    `outlier` （离群点）的定义是 **偏离整体规律** ，数量少并不是定义条件。  
+
+    |横坐标（面积）|纵坐标（价格）|是否合理|
+    |-|-|-|
+    |3000|59 万|	合理，面积大且价格高|
+    |3200|48 万|合理|
+    |3500|63 万|合理|
+    |3800|63 万|合理|
+    |4200|74 万|合理，最大最贵|
+    |4700|19 万|不合理，面积大却极便宜|
+    |5500|16 万|不合理，面积最大却最便宜|
+      
+    3000 到 4000 这一段，虽然点少，但 **基本还沿着那条上升趋势线走** ：面积越大，价格越高。它们只是在趋势线的 **延伸段** 上，并没有 **偏离趋势线** 。 
+    
+    而最后两颗（4700 / 19 万、5500 / 16 万）才是真正异常的：它们远远落在趋势线下方。  
+
+    **所以真正该标记的是“大面积 + 低价格”的组合，而不是“大面积”本身。**  
+
+- 按 3000 切会发生什么？  
+      
+    假设你按`GrLivArea > 3000` 删掉，后果是：  
+
+    1.训练集里少掉 几十到上百套 房子（占比大概 5%~7%） 
+
+    2.而且删掉的全是 高端样本  
+
+    3.模型从没见过 3000 以上的房子，遇到测试集里的豪宅会 系统性低估  
+
+    4.高端市场的误差变大，整体 MAE 反而可能变差
+
+#### 第二条信息：`LotArea > 60000` 是离群点  
+
+#### 第三条信息：`SalePrice > 450000` 影响模型  
+
+
+```python
+sns.catplot(data = df_train, y = 'SalePrice', x = 'OverallQual', kind = 'boxen')
+```  
+![alt text](p4.png)  
+
+这段代码的作用是在验证： **`OverallQual` 这个特征是否值得放进模型；如果值得，应以什么形式放进去。**   
+
+这张图给出四个答案：  
+
+- 每一档的中位数都在上升，且始终单调上升。     
+      
+    从质量 1 到 10，中位数从 5 万一路抬到 43 万，中间没有一档回落。
+
+- 相邻档之间的差距清晰可见。  
+
+    质量 5 约 13 万，质量 6 约 16 万，质量 7 约 20 万，质量 8 约 28 万。每一档都能区分价格，没有“两档挤在一起”的情况。  
+
+- 同一档内部的价格差异也很大。  
+
+    质量 8 的房子，价格从 13 万到 45 万都有。这说明`OverallQual` 只能解释部分价格，不是决定性因素。  
+
+- 关系形态是“平滑上升”，并非“U 形”或“锯齿形”。  
+
+
+
+#### 先算一个分位数
+```python
+df_train['SalePrice'].quantile(0.995)
+
+# 527331.9149999974
+```
+- `quantile(0.995)` 的意思是： 把 1460 个房价从小到大排好，取第 99.5% 位置上的那个值。  
+
+    所以这个数是“ 最贵的 0.5% 的门槛 ”，并非作者随意输入的数字。他这回改了做法：不再凭目测随意指定阈值，而是让数据自己决定。  
+
+#### 删掉超过门槛的房子  
+
+```python
+df_train['SalePrice'].quantile(0.995)
+```
+
+```python
+df_train = df_train[df_train['SalePrice'] <= df_train['SalePrice'].quantile(0.995)]
+```
+
+```python
+df_train.shape
+# (1452, 81)
+```
+
+```python
+df_train = df_train[df_train['GrLivArea'] <= 4000]
+```
+
+```python
+df_train.shape
+# (1450, 81)
+```
+
+- 删除也有先后关系，先删什么、后删什么，结果不一样。 
+    
+    df_train = df_train[df_train['SalePrice'] <= df_train['SalePrice'].quantile(0.995)] df_train = df_train[df_train['GrLivArea'] <= 4000] 这两行代码都是执行删除操作，你说的对，它们存在先后关系，先删什么、后删什么，结果不一样。 如果是先df_train = df_train[df_train['GrLivArea'] <= 4000]，再df_train = df_train[df_train['SalePrice'] <= df_train['SalePrice'].quantile(0.995)]，那么就会有不一样的地方，因为删除了df_train['GrLivArea'] > 4000的房子之后，这个 df_train['SalePrice'].quantile(0.995)就会偏小，导致最后可能会多删除一些东西
+
+#### 先查后删
+```python
+df_train[df_train['LotArea'] > 100000]
+```  
+
+**没有直接删** ，而是先把符合条件的行显示出来看  
+
+```python
+df_train.shape
+# (1446, 81)
+```  
+
+
+# 5.为建模准备数据
+
+### 1 把表切成 X 和 y
+```python
+X_train = df_train.drop(['Id', 'SalePrice'], axis = 1)
+y_train = df_train['SalePrice']
+X_test = df_test.drop(['Id'],axis=1)
+```  
+
+|变量|是什么|列数|
+|-|-|-|
+|X_train|训练用的特征|81 − Id − SalePrice = 79|
+|y_train|训练用的答案|1|
+|X_test|待预测的特征|80 − Id = 79|
+
+- `Id` 被两边都删了。 因为它是流水号，和房价无关（相关系数 −0.022）。留着它只会给模型喂噪声。  
+
+- `X_train` 和`X_test` 必须列数相同、顺序相同。 这是硬性要求——模型按列的位置理解数据，测试集少一列就会错位。这里两个都是 79 列，对得上。  
+
+
+### 2 把 79 列分成两组  
+```python
+categorical_cols = [cname for cname in X_train.columns if X_train[cname].dtype == 'object']
+numerical_cols = [cname for cname in X_train.columns if X_train[cname].dtype != 'object']
+
+print(len(categorical_cols)) # 43
+print(len(numerical_cols)) # 36
+```
+
+
+### 3 三条配置 
+
+现在的数据情况：
+|类型|数量|问题|
+|-|-|-|
+|数值列（LotFrontage、GarageYrBlt…）|36|有缺失值，要填|
+|类别列（MSZoning、KitchenQual…）|43|是文字，模型不认，要变成数字|  
+
+**两类列的问题不同，所以处理方式也必须不同。**  
+
+#### 需要使用的工具
+|零件|干什么|
+|-|-|
+|SimpleImputer|填补缺失值|
+|OneHotEncoder|把文字变成 0/1 数字|
+|Pipeline|把几个步骤串成一条流水线|
+|ColumnTransformer|把不同的列分派到不同的流水线|
+
+```python
+numerical_transformer = SimpleImputer(strategy='constant') 
+
+categorical_transformer = Pipeline(steps=[('imputer', SimpleImputer(strategy='most_frequent')),('onehot', OneHotEncoder(handle_unknown='ignore'))])
+
+preprocessor = ColumnTransformer(transformers=[('num', numerical_transformer, numerical_cols), ('cat', categorical_transformer, categorical_cols)])
+```  
+- numerical_transformer = SimpleImputer(strategy='constant')  
+
+    `SimpleImputer` 是“填补器”，专门处理缺失值。  
+
+    `strategy` 是 **策略** ，也就是“用什么值来填”：  
+    |strategy|用什么值|
+    |-|-|
+    |constant|一个固定的常数，**默认是 0**|
+    |mean|这一列的平均值|
+    |median|这一列的中位数|
+    |most_frequent|这一列出现最多的值（众数）|
+
+- categorical_transformer = Pipeline(steps=[('imputer', SimpleImputer(strategy='most_frequent')),('onehot', OneHotEncoder(handle_unknown='ignore'))]) 
+
+    文字列不能填 0（`MSZoning` 填 0 是什么？没意义），所以要填 出现最多的那个值 。  
+
+    ('onehot', OneHotEncoder(handle_unknown='ignore')) 把文字变成 0/1 数字。`handle_unknown='ignore'` 是“如果遇到未知的类别，就直接忽略”。   
+
+    Pipeline(steps=[('imputer', 第一步), ('onehot',  第二步)])   
+
+    那两个名字`'imputer'` 、`'onehot'` 是 你随便起的标签 ，纯粹为了将来能指名道姓地找到这一步。写成`('a', ...)` 、`('b', ...)` 也照样能跑。
+
+- preprocessor = ColumnTransformer(transformers=[('num', numerical_transformer, numerical_cols), ('cat', categorical_transformer, categorical_cols)]))  
+
+    把不同的列分派到不同的流水线。    
+
+    这里的每个元组有三个位置，含义是：( 这一路叫什么名字,  用哪个加工器, 处理哪些列 )  
+
+    |位置|内容|意思
+    |-|-|-|
+    |第一条|('num', numerical_transformer, numerical_cols)|把 numerical_cols 那 36 列，交给“填 0”去处理|
+    |第二条|('cat', categorical_transformer, categorical_cols)|把 categorical_cols 那 43 列，交给“补众数 + one-hot”这条流水线|  
+
+
+
+# 6. 建模  
+
+```python
+model_GBR =  GradientBoostingRegressor(n_estimators=1100, loss='squared_error', subsample = 0.35, learning_rate = 0.05,random_state=1)
+GBR_Pipeline = Pipeline(steps=[('preprocessor', preprocessor),('model', model_GBR)])
+GBR_Pipeline.fit(X_train, y_train)
+preds_GBR = GBR_Pipeline.predict(X_test)
+```
+
+```python
+submission= pd.DataFrame({'Id': df_test.Id,'SalePrice': preds_GBR})
+```
+
+```python
+submission.head()
+```
+
+```python
+submission.to_csv('submission.csv',index=False)
+```
+
+```python
+516/49003
+# 0.010529967553006959
+```
+
+- model_GBR =  GradientBoostingRegressor(n_estimators=1100, loss='squared_error', subsample = 0.35, learning_rate = 0.05,random_state=1)  
+
+    |参数|值|含义|
+    |-|-|-|
+    |n_estimators|1100|建 1100 棵树（默认 100）|
+    |learning_rate|0.05|每棵树只贡献 5% 的修正量（默认 0.1）|
+    |subsample|0.35|每棵树只看 35% 的样本（默认 1.0，全部）|
+    |loss|squared_error|优化的目标是平方误差（这是默认值，写出来只是显式声明）|
+    |random_state|1|固定随机种子，保证可复现|
+
+- GBR_Pipeline = Pipeline(steps=[('preprocessor', preprocessor),('model', model_GBR)])  
+
+    这段代码就是把 `preprocessor` 这条流水线，和 `model_GBR` 这个模型，串成一条流水线。
+
+- GBR_Pipeline.fit(X_train, y_train)  
+
+    这段代码就是用训练集 `X_train` 和 `y_train` 来训练模型。
+    ```python
+    1. preprocessor.fit_transform(X_train)  
+   ├─ 36 个数值列：把 NaN 填成 0  
+   ├─ 43 个类别列：统计每列的众数、统计每列有哪些类别  
+   │                → 填众数 → one-hot 拆开  
+   └─ 输出：约 286 列的全数字矩阵  
+    2. 拿这个 286 列的矩阵，训练 1100 棵 GradientBoosting 树  
+    3. 把第 1 步统计出来的东西（众数、类别清单）存进 pipeline  ← 这一步是为 predict 准备的  
+    ```  
+
+   
+
+
+
+
+
+
+
 
 
